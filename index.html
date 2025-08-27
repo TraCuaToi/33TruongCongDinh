@@ -1065,22 +1065,58 @@ function showToast(title, message){
 
     renderMenu(groups[0]);
 
-    // Falling flower effect
-    const fallingContainer = document.getElementById("falling-container");
-    const symbols = ['🌸','🌼','🌺','✨','🌷','🌻','🍀','🌹','🍂','🍃','❄️','💮'];
-    function createFallingElement() {
-      const element = document.createElement('div');
-      element.className = 'falling-element';
-      element.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-      element.style.left = `${Math.random() * 100}vw`;
-      element.style.animationDuration = `${Math.random() * 5 + 5}s`;
-      element.style.animationDelay = `-${Math.random() * 5}s`;
-      fallingContainer.appendChild(element);
-      setTimeout(() => element.remove(), 10000);
-    }
 
-    for (let i = 0; i < 7; i++) createFallingElement();
-    setInterval(createFallingElement, 3000);
+// Giữ nguyên container rơi
+const fallingContainer = document.getElementById("falling-container");
+
+// 🔹 Mảng icon + text (giống hoa trước)
+const symbols = ['🌸','🌼','🌺','✨','🇻🇳','🎖️','2/9','Quốc Khánh','Việt Nam'];
+
+// 🔹 Hàm tạo phần tử rơi, giữ nguyên logic cũ
+function createFallingElement() {
+  const element = document.createElement('div');
+  element.className = 'falling-element';
+
+  // 🔹 Chọn ngẫu nhiên 1 phần tử
+  const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+  element.textContent = symbol;
+
+  // 🔹 Nếu là text, gán màu đỏ
+  if (['2/9','Quốc Khánh','Việt Nam'].includes(symbol)) {
+    element.style.color = 'red';
+  }
+
+  // 🔹 Vị trí rơi ngẫu nhiên
+  element.style.left = `${Math.random() * 100}vw`;
+  element.style.top = '-50px';
+
+  // 🔹 Animation ngẫu nhiên, y hệt logic cũ
+  element.style.animationDuration = `${Math.random() * 5 + 5}s`;
+  element.style.animationDelay = `-${Math.random() * 5}s`;
+
+  // 🔹 Kích thước ngẫu nhiên, có thể tăng giảm
+  element.style.fontSize = `${Math.random() * 60 + 50}px`; // 50 → 110px
+  element.style.position = 'absolute';
+
+  fallingContainer.appendChild(element);
+
+  // Xóa sau 10 giây
+  setTimeout(() => element.remove(), 10000);
+}
+
+// Tạo ban đầu 7 phần tử, y hệt code cũ
+for (let i = 0; i < 7; i++) createFallingElement();
+
+// Tạo liên tục mỗi 3 giây, giữ nguyên logic cũ
+setInterval(createFallingElement, 3000);
+
+
+
+
+
+
+
+	  
 
     function showCustomAlert(message) {
       document.getElementById('customAlertMessage').textContent = message;
@@ -2278,6 +2314,7 @@ ordersCollection.onSnapshot(querySnapshot => {
 </script>
 </body>
 </html>
+
 
 
 

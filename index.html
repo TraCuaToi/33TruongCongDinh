@@ -2150,16 +2150,16 @@ function printSingleReceipt(orderCard) {
   const ngayIn = getFormattedDateTime();
   const receiptHTML = `
     <div style="font-family: monospace; width:220px; margin:0 auto; padding-top:1cm;">
-  <h2 style="text-align:center; font-size:16px; margin-bottom:2px;">🍵 Commissioning 🍵</h2>
+  <h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 Commissioning 🍵</h2>
   <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">33 Trương Công Định,Tp Vũng Tàu</h2>
-  <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:3px;">HÓA ĐƠN BÁN HÀNG</h3>
+  <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
 
-    <p style="text-align:center; font-size:12px; white-space:nowrap;">${ngayIn}</p>
+    <p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
       <hr/>
-      <pre style="font-size:14px; white-space:pre-wrap;">${orderText}</pre>
+      <pre style="font-size:10px; white-space:pre-wrap;">${orderText}</pre>
       <hr/>
 
-    <p style="text-align:center; margin-top:10px; font-size:10px;">
+    <p style="text-align:center; margin-top:8px; font-size:10px;">
     ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
     </p>
 
@@ -2191,21 +2191,21 @@ function printAllReceipts() {
   const ngayIn = getFormattedDateTime();
   let receiptText = `
     <div style="font-family: monospace; width:220px; margin:0 auto; padding-top:1cm;">
-	<h2 style="text-align:center; font-size:16px; margin-bottom:2px;">🍵 Commissioning 🍵</h2>
+	<h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 Commissioning 🍵</h2>
     <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">33 Trương Công Định,Tp Vũng Tàu</h2>
-    <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:3px;">HÓA ĐƠN BÁN HÀNG</h3>
-	<p style="text-align:center; font-size:12px; white-space:nowrap;">${ngayIn}</p>
+    <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
+	<p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
       <hr/>
   `;
 
   ordersInPopup.forEach(order => {
     let cleanText = order.innerText.replace("Hủy đơn", "").trim();
-    receiptText += `<p style="font-size:14px; white-space:pre-line;">${cleanText}</p>`;
+    receiptText += `<p style="font-size:10px; white-space:pre-line;">${cleanText}</p>`;
     receiptText += `<hr/>`;
   });
 
   receiptText += `
-      <p style="text-align:center; margin-top:10px; font-size:10px;">
+      <p style="text-align:center; margin-top:8px; font-size:10px;">
       ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
       </p>
 
@@ -2275,6 +2275,7 @@ ordersCollection.onSnapshot(querySnapshot => {
 </script>
 </body>
 </html>
+
 
 
 

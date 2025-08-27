@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Ai cũng đọc & ghi menu (không cần đăng nhập)
+    match /menu/{docId} {
+      allow read, write: if true;
+    }
+
+    // Ai cũng đọc & ghi orders (giữ như cũ nếu bạn đang mở)
+    match /orders/{docId} {
+      allow read, write: if true;
+    }
+
+    // Các collection khác chỉ đọc (tuỳ bạn)
+    match /{document=**} {
+      allow read: if true;
+    }
+  }
+}

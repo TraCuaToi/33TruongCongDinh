@@ -2229,11 +2229,35 @@ document.addEventListener('click', function(event) {
   }
 });
 ////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+ordersCollection.onSnapshot(querySnapshot => {
+  querySnapshot.docChanges().forEach(change => {
+    if (change.type === "added") {
+      const newOrder = change.doc.data();
+
+      // 👉 tính tổng tiền
+      let total = 0;
+      if (typeof newOrder.totalPrice === 'number') {
+        total = newOrder.totalPrice;
+      } else if (Array.isArray(newOrder.items)) {
+        total = newOrder.items.reduce((sum, it) =>
+          sum + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0);
+      }
+      const totalPriceDisplay = total.toLocaleString('vi-VN');
+
+      // 👉 Chỉ hiện toast nếu đang đăng nhập
+      if (auth.currentUser) {
+        showToast(
+          "Đơn hàng mới!",
+          `📞 SĐT: ${newOrder.phoneNumber} — 💰 ${totalPriceDisplay}₫`
+        );
+      }
+    }
+  });
+});
 
 
-
-
-
+///////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////
 </script>

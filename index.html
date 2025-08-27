@@ -898,7 +898,12 @@ height: 20px;
 
     <h3 style="color:#2196f3; text-align:center;"></h3>
     <div id="search-results-list"></div>
-	<p class="thankyou-message">✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨</p>
+	
+    <p class="thankyou-message" style="font-size:10px; text-align:center;">
+    ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
+    </p>
+
+	  
 
 
 <button id="save-popup-btn" 
@@ -2153,7 +2158,11 @@ function printSingleReceipt(orderCard) {
       <hr/>
       <pre style="font-size:14px; white-space:pre-wrap;">${orderText}</pre>
       <hr/>
-      <p style="text-align:center;">✨ Cảm ơn quý khách! ✨</p>
+
+    <p style="text-align:center; margin-top:10px; font-size:10px;">
+    ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
+    </p>
+
     </div>
   `;
   const printWindow = window.open('', '', 'width=400,height=600');
@@ -2196,7 +2205,10 @@ function printAllReceipts() {
   });
 
   receiptText += `
-      <p style="text-align:center; margin-top:10px;">✨ Cảm ơn quý khách! ✨</p>
+      <p style="text-align:center; margin-top:10px; font-size:10px;">
+      ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
+      </p>
+
     </div>
   `;
 
@@ -2263,6 +2275,7 @@ ordersCollection.onSnapshot(querySnapshot => {
 </script>
 </body>
 </html>
+
 
 
 

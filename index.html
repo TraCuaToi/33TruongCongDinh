@@ -479,7 +479,7 @@
       max-width: 1200px;
     }
     #order-list {
-    max-height: 15cm;     /* Giới hạn chiều cao */
+    max-height: 20cm;     /* Giới hạn chiều cao */
     overflow-y: auto;     /* Thanh cuộn dọc */
     padding-right: 10px;  /* Tránh chữ bị che */
     }
@@ -1824,18 +1824,14 @@ auth.onAuthStateChanged(user => {
 
 
 
-
-
-let unsubscribe;
-let initialSnapshot = true;
 function listenForOrders(collection) {
+    // Ngừng lắng nghe nếu đã tồn tại
     if (typeof unsubscribe !== 'undefined') {
         unsubscribe();
     }
 
-    // Lắng nghe TẤT CẢ các đơn hàng từ Firestore
-    unsubscribe = collection.orderBy("timestamp", "desc").onSnapshot(snapshot => {
-        
+    // Lắng nghe TẤT CẢ các đơn hàng từ Firestore mà không sắp xếp trước
+    unsubscribe = collection.onSnapshot(snapshot => {
         if (snapshot.empty) {
             orderList.innerHTML = 'Không có đơn hàng nào.';
             totalOrdersCountEl.textContent = '0';
@@ -1845,86 +1841,112 @@ function listenForOrders(collection) {
             return;
         }
 
+        let orders = [];
         let totalOrders = 0;
         let completedOrders = 0;
         let totalRevenue = 0;
-        
-        // Xóa danh sách cũ trước khi hiển thị mới
-        orderList.innerHTML = '';
 
-        // Duyệt qua TẤT CẢ đơn hàng trong snapshot
+        // Bước 1: Lấy tất cả dữ liệu từ snapshot và tính toán thống kê
         snapshot.forEach(doc => {
             const orderData = doc.data();
+            orderData.id = doc.id; // Thêm ID tài liệu để sử dụng sau này
+            orders.push(orderData);
             
-            // Bước 1: Luôn luôn tính toán thống kê cho tất cả đơn hàng
             totalOrders++;
             if (orderData.completed) {
                 completedOrders++;
             }
             
             let orderTotalPrice = 0;
-            orderData.items.forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                orderTotalPrice += itemTotal;
-            });
+            if (orderData.items) {
+                orderData.items.forEach(item => {
+                    orderTotalPrice += item.price * item.quantity;
+                });
+            }
             totalRevenue += orderTotalPrice;
+        });
 
-            // Bước 2: CHỈ hiển thị đơn hàng nếu nó CHƯA được hoàn thành
+        // Bước 2: Sắp xếp lại danh sách trong JavaScript theo yêu cầu
+        // Logic sắp xếp:
+        // 1. Ưu tiên cao nhất: Đơn hàng đã nhận và chưa hoàn thành (accepted=true, completed=false)
+        // 2. Các đơn hàng còn lại: Sắp xếp theo thời gian tăng dần (đơn cũ ở trên, đơn mới ở dưới)
+        orders.sort((a, b) => {
+            const aIsAcceptedAndIncomplete = a.accepted && !a.completed;
+            const bIsAcceptedAndIncomplete = b.accepted && !b.completed;
+
+            if (aIsAcceptedAndIncomplete && !bIsAcceptedAndIncomplete) {
+                return -1; // Đẩy a lên trước
+            }
+            if (!aIsAcceptedAndIncomplete && bIsAcceptedAndIncomplete) {
+                return 1; // Đẩy b lên trước
+            }
+            
+            // Nếu cả hai đều cùng trạng thái ưu tiên hoặc không ưu tiên,
+            // sắp xếp theo thời gian tăng dần (cũ trước)
+            const timeA = a.timestamp ? a.timestamp.toDate() : new Date(0);
+            const timeB = b.timestamp ? b.timestamp.toDate() : new Date(0);
+            return timeA - timeB; 
+        });
+
+        // Bước 3: Xóa danh sách cũ và hiển thị danh sách đã được sắp xếp
+        orderList.innerHTML = '';
+        
+        orders.forEach(orderData => {
+            // CHỈ hiển thị đơn hàng nếu nó CHƯA được hoàn thành
             if (!orderData.completed) {
                 const orderCard = document.createElement('div');
                 orderCard.className = `order-card ${orderData.completed ? 'completed' : ''}`;
-                orderCard.dataset.id = doc.id;
+                orderCard.dataset.id = orderData.id;
                 
+                // Code tạo nội dung HTML cho orderCard (giữ nguyên như bạn đã gửi)
                 let itemsHTML = '';
-                orderData.items.forEach(item => {
-                    const itemToppingsHtml = item.toppings && item.toppings.length > 0 
-                        ? `<p style="margin: 0; font-size: 0.9em; color: #888;">Topping: ${item.toppings.map(t => t.name).join(', ')}</p>`
-                        : '';
-                    const itemNotesHtml = item.notes 
-                        ? `<p style="margin: 0; font-size: 0.9em; color: #888;">Ghi chú: ${item.notes}</p>`
-                        : '';
-
-                    const itemTotal = item.price * item.quantity;
-                    itemsHTML += `
-                        <div class="order-item-detail">
-                            ${item.quantity} x ${item.name} (${item.size ? `Size: ${item.size}` : 'Không size'})
-                            <span style="font-weight: bold; color: #e63946;">
-                                ${itemTotal.toLocaleString('vi-VN')}₫
-                            </span>
-                            ${itemToppingsHtml}
-                            ${itemNotesHtml}
-                        </div>
-                    `;
-                });
+                if (orderData.items) {
+                    orderData.items.forEach(item => {
+                        const itemToppingsHtml = item.toppings && item.toppings.length > 0
+                            ? `<p style="margin: 0; font-size: 0.9em; color: #888;">Topping: ${item.toppings.map(t => t.name).join(', ')}</p>`
+                            : '';
+                        const itemNotesHtml = item.notes
+                            ? `<p style="margin: 0; font-size: 0.9em; color: #888;">Ghi chú: ${item.notes}</p>`
+                            : '';
+                        const itemTotal = (item.price || 0) * (item.quantity || 0);
+                        itemsHTML += `
+                            <div class="order-item-detail">
+                                ${item.quantity} x ${item.name} (${item.size ? `Size: ${item.size}` : 'Không size'})
+                                <span style="font-weight: bold; color: #e63946;">
+                                    ${itemTotal.toLocaleString('vi-VN')}₫
+                                </span>
+                                ${itemToppingsHtml}
+                                ${itemNotesHtml}
+                            </div>
+                        `;
+                    });
+                }
                 
+                const orderTotalPrice = (orderData.items || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
                 const timestamp = orderData.timestamp ? orderData.timestamp.toDate().toLocaleString('vi-VN') : 'Đang cập nhật...';
-
-
-
-               orderCard.innerHTML = `
-                 <h4>Đơn hàng của khách: ${orderData.phoneNumber}</h4>
-                 <div>${itemsHTML}</div>
-                 <div style="font-weight: bold; margin-top: 10px;">
-                   Tổng cộng: ${orderTotalPrice.toLocaleString('vi-VN')}₫
-                 </div>
-                 ${orderData.notes ? `<div>Ghi chú chung: ${orderData.notes}</div>` : ''}
-                 <div class="order-meta">Thời gian: ${timestamp}</div>
-
-                 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-                   <button class="accept-btn" ${orderData.accepted ? 'disabled' : ''}>
-                     ${orderData.accepted ? 'ĐÃ NHẬN ĐƠN' : 'Đã nhận đơn'}
-                   </button>
-                   <button class="complete-btn" ${orderData.completed ? 'disabled' : ''}>
-                     ${orderData.completed ? 'Đã hoàn thành' : 'Đơn đã hoàn thành'}
-                   </button>
-                 </div>
-            `;
                 
+                orderCard.innerHTML = `
+                    <h4>Đơn hàng của khách: ${orderData.phoneNumber}</h4>
+                    <div>${itemsHTML}</div>
+                    <div style="font-weight: bold; margin-top: 10px;">
+                        Tổng cộng: ${orderTotalPrice.toLocaleString('vi-VN')}₫
+                    </div>
+                    ${orderData.notes ? `<div>Ghi chú chung: ${orderData.notes}</div>` : ''}
+                    <div class="order-meta">Thời gian: ${timestamp}</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                        <button class="accept-btn" ${orderData.accepted ? 'disabled' : ''}>
+                            ${orderData.accepted ? 'ĐÃ NHẬN ĐƠN' : 'Đã nhận đơn'}
+                        </button>
+                        <button class="complete-btn" ${orderData.completed ? 'disabled' : ''}>
+                            ${orderData.completed ? 'Đã hoàn thành' : 'Đơn đã hoàn thành'}
+                        </button>
+                    </div>
+                `;
                 orderList.appendChild(orderCard);
             }
         });
-        
-        // Cập nhật hiển thị thống kê cuối cùng
+
+        // Bước 4: Cập nhật thống kê và gắn lại sự kiện
         totalOrdersCountEl.textContent = totalOrders;
         completedOrdersCountEl.textContent = completedOrders;
         incompleteOrdersCountEl.textContent = totalOrders - completedOrders;
@@ -1933,17 +1955,16 @@ function listenForOrders(collection) {
         document.querySelectorAll('.complete-btn').forEach(btn => {
             btn.addEventListener('click', toggleOrderCompleted);
         });
-
-
         document.querySelectorAll('.accept-btn').forEach(btn => {
             btn.addEventListener('click', acceptOrder);
         });
 
+        // Xử lý thông báo đơn hàng mới
         const added = snapshot.docChanges().filter(c => c.type === 'added');
         if (!initialSnapshot && added.length) {
             added.forEach(ch => {
                 const o = ch.doc.data();
-                const total = (o.items || []).reduce((s, it) => s + it.price * it.quantity, 0);
+                const total = (o.items || []).reduce((s, it) => s + (it.price || 0) * (it.quantity || 0), 0);
                 const when = o.timestamp ? o.timestamp.toDate().toLocaleTimeString('vi-VN') : '';
                 showToast(
                     `Đơn mới: ${o.phoneNumber || ''}`,

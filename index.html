@@ -2156,7 +2156,7 @@ function printSingleReceipt(orderCard) {
 
     <p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
       <hr/>
-      <pre style="font-size:10px; white-space:pre-wrap;">${orderText}</pre>
+      <pre style="font-size:10px; white-space:pre-wrap; line-height:1.5;   ">${orderText}</pre>
       <hr/>
 
     <p style="text-align:center; margin-top:8px; font-size:8px;">
@@ -2200,7 +2200,7 @@ function printAllReceipts() {
 
   ordersInPopup.forEach(order => {
     let cleanText = order.innerText.replace("Hủy đơn", "").trim();
-    receiptText += `<p style="font-size:10px; white-space:pre-line;">${cleanText}</p>`;
+    receiptText += `<p style="font-size:10px; white-space:pre-line; line-height:1.5;  ">${cleanText}</p>`;
     receiptText += `<hr/>`;
   });
 
@@ -2275,6 +2275,7 @@ ordersCollection.onSnapshot(querySnapshot => {
 </script>
 </body>
 </html>
+
 
 
 

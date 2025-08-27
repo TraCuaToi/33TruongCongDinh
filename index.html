@@ -2198,12 +2198,15 @@ function printAllReceipts() {
       <hr/>
   `;
 
-  ordersInPopup.forEach(order => {
-    let cleanText = order.innerText.replace("Hủy đơn", "").trim();
-    receiptText += `<p style="font-size:10px; white-space:pre-line; line-height:1.5;  ">${cleanText}</p>`;
-    receiptText += `<hr/>`;
+ordersInPopup.forEach(order => {
+  let cleanText = order.innerText.replace("Hủy đơn", "").trim();
+  cleanText.split("\n").forEach(line => {
+    if(line.trim() !== ""){
+      receiptText += `<p style="margin:2px 0; font-size:10px;">${line}</p>`;
+    }
   });
-
+  receiptText += `<hr/>`;
+});
   receiptText += `
       <p style="text-align:center; margin-top:8px; font-size:8px;">
       ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
@@ -2275,6 +2278,7 @@ ordersCollection.onSnapshot(querySnapshot => {
 </script>
 </body>
 </html>
+
 
 
 

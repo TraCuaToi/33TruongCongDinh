@@ -2453,7 +2453,16 @@ document.addEventListener('click', async (event) => {
 	  <button id="add-symbol-btn" type="button"
           class="mt-2 bg-green-500 text-white px-3 py-1 rounded">+ Thêm</button>
 	</div>
-
+	<div class="mb-4">
+    <h3 class="text-xl font-bold mb-2">Hiệu ứng trái tim</h3>
+    <div class="flex items-center space-x-2 mb-2">
+        <label class="block text-gray-700 font-bold">Bật hiệu ứng:</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="heart-effect-toggle" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full 	peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border 	after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+    </div>
+</div>
         <button id="save-config-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Lưu thay đổi</button>
     </div>
 </div>
@@ -2469,7 +2478,21 @@ const closeBtn = document.querySelector('.close-button');
 const storeNameInput = document.getElementById('store-name-input');
 const storeAddressInput = document.getElementById('store-address-input');
 const saveConfigBtn = document.getElementById('save-config-btn');
-
+const heartEffectToggle = document.getElementById('heart-effect-toggle');
+const heartEffectContainer = document.getElementById("heart-effect-container") || (() => {
+    const div = document.createElement("div");
+    div.id = "heart-effect-container";
+    div.style.position = "fixed";
+    div.style.top = "0";
+    div.style.left = "0";
+    div.style.width = "100%";
+    div.style.height = "100%";
+    div.style.pointerEvents = "none";
+    div.style.zIndex = "9998";
+    document.body.appendChild(div);
+    return div;
+})();
+let heartEffectInterval = null;
 // 🔹 Quan trọng: khai báo configRef 1 lần duy nhất
 const configRef = firebase.firestore().collection('config').doc('storeInfo');
 
@@ -2491,9 +2514,21 @@ configBtn.addEventListener('click', () => {
     // Đổ biểu tượng hoa rơi
     symbolsList.innerHTML = "";
     symbols.forEach(s => addSymbolRow(s.text, s.color));
-    if (symbols.length === 0) addSymbolRow("🌸", "#ff69b4");
+    
+    // ĐẢM BẢO LUÔN CÓ ÍT NHẤT 2 Ô NHẬP LIỆU
+    if (symbols.length < 2) {
+        for(let i = symbols.length; i < 2; i++) {
+            addSymbolRow("", "#ff69b4");
+        }
+    }
+    // Cập nhật trạng thái nút toggle
+    configRef.get().then(doc => {
+        const data = doc.data();
+        if (data && heartEffectToggle) {
+            heartEffectToggle.checked = data.heartEffectEnabled === true;
+        }
+    });
 });
-
 closeBtn.addEventListener('click', () => {
     storeConfigModal.style.display = 'none';
 });
@@ -2554,23 +2589,34 @@ saveConfigBtn.addEventListener('click', async () => {
         return;
     }
 
+    // LẤY DỮ LIỆU TỪ 2 Ô ĐẦU TIÊN CHO HIỆU ỨNG TRÁI TIM
+    const newHeartSymbol = newSymbols.length > 0 ? newSymbols[0].text : null;
+    const newHeartText = newSymbols.length > 1 ? newSymbols[1].text : null;
+    const newHeartEffectEnabled = heartEffectToggle.checked;
+
     try {
         await configRef.set({
             storeName: newStoreName,
             storeAddress: newStoreAddress,
-            fallingSymbols: newSymbols
+            fallingSymbols: newSymbols,
+            heartSymbol: newHeartSymbol,
+            heartText: newHeartText,
+            heartEffectEnabled: newHeartEffectEnabled
         });
+        
         alert('Đã lưu cấu hình thành công!');
         storeConfigModal.style.display = 'none';
         symbols = newSymbols;
         storeNameElement.textContent = newStoreName;
         storeAddressElement.textContent = newStoreAddress;
+
+        updateHeartEffect(newHeartEffectEnabled, newHeartSymbol, newHeartText);
+
     } catch (error) {
         console.error("Lỗi khi lưu cấu hình: ", error);
         alert('Có lỗi xảy ra khi lưu cấu hình.');
     }
 });
-
 // ---------------- LOAD CẤU HÌNH TỪ FIREBASE ----------------
 configRef.get().then((doc) => {
     if (doc.exists) {
@@ -2578,6 +2624,13 @@ configRef.get().then((doc) => {
         storeNameElement.textContent = data.storeName || "";
         storeAddressElement.textContent = data.storeAddress || "";
         symbols = Array.isArray(data.fallingSymbols) ? data.fallingSymbols : [];
+        
+        const heartEnabled = data.heartEffectEnabled === true;
+        if (heartEffectToggle) {
+            heartEffectToggle.checked = heartEnabled;
+        }
+
+        updateHeartEffect(heartEnabled, data.heartSymbol, data.heartText);
     }
 }).catch((error) => {
     console.error("Lỗi khi đọc cấu hình: ", error);
@@ -2593,7 +2646,7 @@ const fallingContainer = document.getElementById("falling-container") || (() => 
   div.style.width = "100%";
   div.style.height = "100%";
   div.style.pointerEvents = "none";
-  div.style.zIndex = "9999";
+  div.style.zIndex = "9998";
   document.body.appendChild(div);
   return div;
 })();
@@ -2627,7 +2680,115 @@ style.textContent = `
 }`;
 document.head.appendChild(style);
 
+function updateHeartEffect(enabled, symbol, text) {
+    if (heartEffectInterval) {
+        clearInterval(heartEffectInterval);
+        heartEffectInterval = null;
+    }
+
+    if (enabled && symbol && text) {
+        heartEffectInterval = setInterval(() => {
+            heartEffectContainer.innerHTML = "";
+            createHeartEffect(symbol, text);
+        }, 5000);
+        
+        createHeartEffect(symbol, text);
+    }
+}
+
+function createHeartEffect(symbol, text) {
+    const heartPoints = generateHeartPoints(100);
+    const iconSize = 15;
+
+    heartPoints.forEach((point, index) => {
+        const icon = document.createElement('div');
+        icon.textContent = symbol;
+        icon.style.color = '#ff4d4d';
+        icon.style.position = 'absolute';
+        icon.style.fontSize = `${iconSize}px`;
+
+        const startX = (index % 2 === 0) ? -50 : window.innerWidth + 50;
+        const startY = window.innerHeight + 50;
+        icon.style.left = `${startX}px`;
+        icon.style.top = `${startY}px`;
+
+        icon.style.transition = `transform 3s ease-out, opacity 0.5s ease-in 4.5s`;
+        icon.style.opacity = '1';
+
+        setTimeout(() => {
+            const finalX = (window.innerWidth / 2) + (point.x * window.innerWidth / 1800) - (iconSize / 2);
+            const finalY = (window.innerHeight / 2) + (point.y * window.innerHeight / 1800) - (iconSize / 2);
+            icon.style.transform = `translate(${finalX - startX}px, ${finalY - startY}px)`;
+        }, 50);
+
+        heartEffectContainer.appendChild(icon);
+    });
+
+// Tạo chữ xuất hiện sau 3 giây
+// Tạo chữ xuất hiện sau 3 giây
+setTimeout(() => {
+    const textElement = document.createElement('div');
+    textElement.textContent = text;
+    textElement.style.position = 'absolute';
+    textElement.style.left = '50%'
+    textElement.style.top = '50%';
+    
+    // 🔹 CHỈNH SỬA: Hiệu ứng to dần
+    textElement.style.transform = 'translate(-50%, -50%) scale(0.1)'; 
+    textElement.style.fontSize = '1.5rem'; // Kích thước ban đầu vừa phải
+    textElement.style.fontWeight = 'bold';
+    textElement.style.textShadow = '0 0 10px rgba(0,0,0,0.5)'; 
+    textElement.style.opacity = '0';
+    // 🔹 CHỈNH SỬA: Transition mạnh hơn và thời gian lâu hơn
+    textElement.style.transition = 'all 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)'; 
+    textElement.style.zIndex = '10000';
+    heartEffectContainer.appendChild(textElement);
+    textElement.style.color = '#ff0000';
+    // Hiệu ứng to dần và xuất hiện
+    setTimeout(() => {
+        // 🔹 CHỈNH SỬA: To hết màn hình (scale rất lớn)
+        textElement.style.transform = `translate(-50%, -50%) scale(${Math.max(window.innerWidth, window.innerHeight) / 200})`;
+        textElement.style.opacity = '1';
+    }, 50);
+
+    // Hiệu ứng nhấp nháy 3 lần (giữ nguyên)
+    let blinkCount = 0;
+    const blinkInterval = setInterval(() => {
+        textElement.style.opacity = (textElement.style.opacity == 1) ? 0.2 : 1;
+        blinkCount++;
+        if (blinkCount >= 6) { 
+            clearInterval(blinkInterval);
+            textElement.style.opacity = 1; 
+        }
+    }, 150);
+
+    // Hiệu ứng tan biến sau 4.5 giây (giữ nguyên)
+    setTimeout(() => {
+        heartEffectContainer.style.transition = 'opacity 0.5s ease-out';
+        heartEffectContainer.style.opacity = '0';
+        setTimeout(() => {
+            heartEffectContainer.innerHTML = '';
+            heartEffectContainer.style.opacity = '1';
+            heartEffectContainer.style.transition = 'none';
+        }, 500);
+    }, 4500);
+}, 3000);
+}
+function generateHeartPoints(count) {
+    const points = [];
+    for (let i = 0; i < count; i++) {
+        const t = (i / count) * 2 * Math.PI;
+        const x = 16 * Math.sin(t) * Math.sin(t) * Math.sin(t);
+        const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+        points.push({ x: x * 50, y: -y * 50 });
+    }
+    return points;
+}
+
 </script>
+
+
+
 
 <script>
 function updateStoreInfo(name, address) {
@@ -2653,38 +2814,4 @@ configRef.get().then(doc => {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

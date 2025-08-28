@@ -750,7 +750,7 @@ height: 20px;
   <div class="store-info-section">
     <div id="falling-container"></div>
     <h1 id="store-name" class="store-name-main"></h1>
-    <p id="store-address" class="store-address-main"></p>
+    <p  id="store-address" class="store-address-main"></p>
   </div>
     
     <div class="content-container">
@@ -916,8 +916,9 @@ height: 20px;
     <span class="close" data-modal="searchResultModal">&times;</span>
     
     <!-- Thêm tên quán -->
-  <h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 Commissioning 🍵</h2>
-  <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">33 Trương Công Định,Tp Vũng Tàu</h2>
+<h2 id="store-name-receipt" style="text-align:center; font-size:16px; margin-bottom:1px;"></h2>  
+<h2 id="store-address-receipt" style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;"></h2>
+
   <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
    
 
@@ -1377,6 +1378,7 @@ async function deleteMenuItem(id, name) {
   }
 }
 
+
     // Toggle sidebar
     menuToggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('open');
@@ -1669,6 +1671,7 @@ toggleToppingsBtn.textContent = 'Hiện topping (bấm để mở)';
 			<p style="margin-top: 8px; color: #555;">Ngày đặt: ${timestamp}</p>
                         <p style="font-weight: bold; color: ${orderData.completed ? '#4CAF50' : '#e63946'}; font-size: 1.1em; margin-top: 10px;">Trạng thái: ${statusText}</p>
                     `;
+
 // >>> THÊM Ở ĐÂY <<<
 if (!orderData.accepted && !orderData.completed) {
   const cancelBtn = document.createElement('button');
@@ -2205,37 +2208,46 @@ function printSingleReceipt(orderCard) {
     showCustomAlert("Không tìm thấy đơn hàng để in.");
     return;
   }
+
   const orderText = orderCard.innerText.replace("Hủy đơn", "").trim();
   const ngayIn = getFormattedDateTime();
+
+  // 👉 Lấy sẵn tên/địa chỉ từ DOM (đã load Firebase trước đó)
+  const storeName = document.getElementById("store-name").textContent || "";
+  const storeAddress = document.getElementById("store-address").textContent || "";
+
   const receiptHTML = `
     <div style="font-family: monospace; width:220px; margin:0 auto; padding-top:1cm;">
-  <h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 Commissioning 🍵</h2>
-  <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">33 Trương Công Định,Tp Vũng Tàu</h2>
-  <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
 
-    <p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
+      <h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 ${storeName} 🍵</h2>  
+      <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">${storeAddress}</h2>
+
+      <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
+
+      <p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
       <hr/>
-      <pre style="font-size:10px; white-space:pre-wrap; line-height:1.5;   ">${orderText}</pre>
+      <pre style="font-size:10px; white-space:pre-wrap; line-height:1.5;">${orderText}</pre>
       <hr/>
 
-    <p style="text-align:center; margin-top:8px; font-size:8px;">
-    ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
-    </p>
+      <p style="text-align:center; margin-top:8px; font-size:8px;">
+        ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
+      </p>
 
     </div>
   `;
+
   const printWindow = window.open('', '', 'width=400,height=600');
   printWindow.document.write('<html><head><title>In hóa đơn</title></head><body>');
   printWindow.document.write(receiptHTML);
   printWindow.document.write('</body></html>');
   printWindow.document.close();
+
   setTimeout(() => {
     printWindow.focus();
     printWindow.print();
     printWindow.close();
   }, 500);
 }
-
 
 // Hàm này in TẤT CẢ các đơn hàng (cho nút "In hóa đơn" gốc)
 function printAllReceipts() {
@@ -2248,29 +2260,34 @@ function printAllReceipts() {
   }
 
   const ngayIn = getFormattedDateTime();
+
+  // 👉 Lấy tên & địa chỉ quán từ DOM (đã load Firebase từ trước)
+  const storeName = document.getElementById("store-name").textContent || "";
+  const storeAddress = document.getElementById("store-address").textContent || "";
+
   let receiptText = `
     <div style="font-family: monospace; width:220px; margin:0 auto; padding-top:1cm;">
-	<h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 Commissioning 🍵</h2>
-    <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">33 Trương Công Định,Tp Vũng Tàu</h2>
-    <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
-	<p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
+      <h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 ${storeName} 🍵</h2>  
+      <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">${storeAddress}</h2>
+      <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
+      <p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
       <hr/>
   `;
 
-ordersInPopup.forEach(order => {
-  let cleanText = order.innerText.replace("Hủy đơn", "").trim();
-  cleanText.split("\n").forEach(line => {
-    if(line.trim() !== ""){
-      receiptText += `<p style="margin:2px 0; font-size:10px;">${line}</p>`;
-    }
+  ordersInPopup.forEach(order => {
+    let cleanText = order.innerText.replace("Hủy đơn", "").trim();
+    cleanText.split("\n").forEach(line => {
+      if (line.trim() !== "") {
+        receiptText += `<p style="margin:2px 0; font-size:10px;">${line}</p>`;
+      }
+    });
+    receiptText += `<hr/>`;
   });
-  receiptText += `<hr/>`;
-});
+
   receiptText += `
       <p style="text-align:center; margin-top:8px; font-size:8px;">
-      ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
+        ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
       </p>
-
     </div>
   `;
 
@@ -2279,12 +2296,14 @@ ordersInPopup.forEach(order => {
   printWindow.document.write(receiptText);
   printWindow.document.write('</body></html>');
   printWindow.document.close();
-setTimeout(() => {
-    printWindow.focus();       // Chuyển focus sang cửa sổ in
-    printWindow.print();       // Mở hộp thoại in
-    printWindow.close();       // Đóng cửa sổ in sau khi in xong
-}, 500); // Chờ 500ms trước khi thực hiện
+
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  }, 500);
 }
+
 
 	
 
@@ -2343,7 +2362,6 @@ function renderNote(noteDoc) {
     const noteData = noteDoc.data();
     
     // Kiểm tra xem người dùng hiện tại có phải admin hay không
-    // (Giả định email admin là "admin@commissioning.com")
     const isCurrentUserAdmin = auth.currentUser?.email === "admin@myapp.com";
     
     // Kiểm tra xem người dùng hiện tại có phải là người tạo ghi chú hay không
@@ -2548,6 +2566,28 @@ configRef.get().then((doc) => {
     }
 }).catch((error) => {
     console.error("Lỗi khi đọc cấu hình: ", error);
+});
+
+</script>
+<script>
+function updateStoreInfo(name, address) {
+  // Home
+  document.getElementById("store-name").textContent = name;
+  document.getElementById("store-address").textContent = address;
+
+  // Popup (nếu có trong DOM)
+  const popupName = document.getElementById("store-name-receipt");
+  const popupAddr = document.getElementById("store-address-receipt");
+  if (popupName) popupName.textContent = "🍵 " + name + " 🍵";
+  if (popupAddr) popupAddr.textContent = address;
+}
+
+// Khi load Firestore
+configRef.get().then(doc => {
+  if (doc.exists) {
+    const data = doc.data();
+    updateStoreInfo(data.storeName, data.storeAddress);
+  }
 });
 </script>
 

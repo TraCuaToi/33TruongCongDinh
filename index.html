@@ -2419,6 +2419,41 @@ document.addEventListener('click', async (event) => {
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////
+
+  notesCollection.onSnapshot(snapshot => {
+    snapshot.docChanges().forEach(change => {
+      if (change.type === "added") {
+        const newNote = change.doc.data();
+
+        // 👉 Lấy thông tin cơ bản
+        const author = newNote.nguoiTao || "Ẩn danh";
+        const content = newNote.noiDung || "(không có nội dung)";
+        const time = newNote.thoiGian 
+          ? new Date(newNote.thoiGian).toLocaleString('vi-VN')
+          : "";
+
+        // 👉 Chỉ hiện toast nếu có người đang đăng nhập
+        if (auth.currentUser) {
+          showToast(
+            "📌 Ghi chú mới!",
+            `✍️ ${author}: ${content}\n🕒 ${time}`
+          );
+        }
+      }
+    });
+  });
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
 </script>
 </body>
 </html>

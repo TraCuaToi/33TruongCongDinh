@@ -1070,7 +1070,7 @@ function showToast(title, message){
 const fallingContainer = document.getElementById("falling-container");
 
 // 🔹 Mảng icon + text (giống hoa trước)
-const symbols = ['🌸','🌼','🌺','✨','🇻🇳','🎖️','2/9','Quốc Khánh','Việt Nam'];
+const symbols = ['🌸','🌼','🌺','✨','🇻🇳','2/9','Quốc Khánh','Việt Nam'];
 
 // 🔹 Hàm tạo phần tử rơi, giữ nguyên logic cũ
 function createFallingElement() {
@@ -1095,7 +1095,7 @@ function createFallingElement() {
   element.style.animationDelay = `-${Math.random() * 5}s`;
 
   // 🔹 Kích thước ngẫu nhiên, có thể tăng giảm
-  element.style.fontSize = `${Math.random() * 60 + 50}px`; // 50 → 110px
+  element.style.fontSize = `${Math.random() * 20 + 30}px`; // 50 → 110px
   element.style.position = 'absolute';
 
   fallingContainer.appendChild(element);
@@ -2314,6 +2314,7 @@ ordersCollection.onSnapshot(querySnapshot => {
 </script>
 </body>
 </html>
+
 
 
 

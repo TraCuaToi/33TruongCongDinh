@@ -705,6 +705,17 @@ height: 20px;
     margin: auto; /* Căn giữa theo chiều ngang */
 }
 
+#falling-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Rất quan trọng để người dùng có thể tương tác với nội dung bên dưới */
+    z-index: 9999;
+}
+
+
 /* Toast */
 .toast-container{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:4000}
 .toast{
@@ -1090,59 +1101,6 @@ function showToast(title, message){
     }
 
     renderMenu(groups[0]);
-
-
-// Giữ nguyên container rơi
-const fallingContainer = document.getElementById("falling-container");
-
-// 🔹 Mảng icon + text (giống hoa trước)
-const symbols = ['🌸','🌼','🌺','✨','🇻🇳','2/9','Quốc Khánh','Việt Nam'];
-
-// 🔹 Hàm tạo phần tử rơi, giữ nguyên logic cũ
-function createFallingElement() {
-  const element = document.createElement('div');
-  element.className = 'falling-element';
-
-  // 🔹 Chọn ngẫu nhiên 1 phần tử
-  const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-  element.textContent = symbol;
-
-  // 🔹 Nếu là text, gán màu đỏ
-  if (['2/9','Quốc Khánh','Việt Nam'].includes(symbol)) {
-    element.style.color = 'red';
-  }
-
-  // 🔹 Vị trí rơi ngẫu nhiên
-  element.style.left = `${Math.random() * 100}vw`;
-  element.style.top = '-50px';
-
-  // 🔹 Animation ngẫu nhiên, y hệt logic cũ
-  element.style.animationDuration = `${Math.random() * 5 + 5}s`;
-  element.style.animationDelay = `-${Math.random() * 5}s`;
-
-  // 🔹 Kích thước ngẫu nhiên, có thể tăng giảm
-  element.style.fontSize = `${Math.random() * 20 + 30}px`; // 50 → 110px
-  element.style.position = 'absolute';
-
-  fallingContainer.appendChild(element);
-
-  // Xóa sau 10 giây
-  setTimeout(() => element.remove(), 10000);
-}
-
-// Tạo ban đầu 7 phần tử, y hệt code cũ
-for (let i = 0; i < 7; i++) createFallingElement();
-
-// Tạo liên tục mỗi 3 giây, giữ nguyên logic cũ
-setInterval(createFallingElement, 3000);
-
-
-
-
-
-
-
-	  
 
     function showCustomAlert(message) {
       document.getElementById('customAlertMessage').textContent = message;
@@ -2486,89 +2444,188 @@ document.addEventListener('click', async (event) => {
             <label for="store-address-input" class="block text-gray-700 font-bold mb-2">Địa chỉ:</label>
             <input type="text" id="store-address-input" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
+	<div class="mb-4">
+ 	 <label class="block text-gray-700 font-bold mb-2">Biểu tượng/hoa rơi:</label>
+ 	 <div id="symbols-list" class="space-y-2"></div>
+	  <button id="add-symbol-btn" type="button"
+          class="mt-2 bg-green-500 text-white px-3 py-1 rounded">+ Thêm</button>
+	</div>
+
         <button id="save-config-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Lưu thay đổi</button>
     </div>
 </div>
 
 <script>
+// ---------------- BIẾN DÙNG CHUNG ----------------
 const storeNameElement = document.getElementById('store-name');
 const storeAddressElement = document.getElementById('store-address');
 
 const configBtn = document.getElementById('config-btn');
-const storeConfigModal = document.getElementById('config-modal'); // Đã đổi tên biến tại đây
+const storeConfigModal = document.getElementById('config-modal');
 const closeBtn = document.querySelector('.close-button');
 const storeNameInput = document.getElementById('store-name-input');
 const storeAddressInput = document.getElementById('store-address-input');
 const saveConfigBtn = document.getElementById('save-config-btn');
 
-// Lắng nghe trạng thái đăng nhập để hiển thị nút Cấu hình
+// 🔹 Quan trọng: khai báo configRef 1 lần duy nhất
+const configRef = firebase.firestore().collection('config').doc('storeInfo');
+
+// ---------------- AUTH (hiện nút cấu hình cho admin) ----------------
 firebase.auth().onAuthStateChanged(user => {
-    const configBtn = document.getElementById('config-btn');
     if (user && user.email === 'admin@myapp.com') {
-        // Hiển thị nút nếu là admin
         configBtn.style.display = 'block'; 
     } else {
-        // Ẩn nút nếu không phải admin
         configBtn.style.display = 'none'; 
     }
 });
 
-// Mở modal cấu hình
+// ---------------- MỞ / ĐÓNG MODAL ----------------
 configBtn.addEventListener('click', () => {
-    storeConfigModal.style.display = 'flex'; // Sử dụng tên biến mới
-    // Đổ dữ liệu hiện tại vào input
+    storeConfigModal.style.display = 'flex';
+    // Đổ dữ liệu hiện tại
     storeNameInput.value = storeNameElement.textContent;
     storeAddressInput.value = storeAddressElement.textContent;
+    // Đổ biểu tượng hoa rơi
+    symbolsList.innerHTML = "";
+    symbols.forEach(s => addSymbolRow(s.text, s.color));
+    if (symbols.length === 0) addSymbolRow("🌸", "#ff69b4");
 });
 
-// Thêm sự kiện click để đóng modal khi bấm vào nút "X"
 closeBtn.addEventListener('click', () => {
     storeConfigModal.style.display = 'none';
 });
 
-// Thêm sự kiện click để đóng modal khi click ra ngoài
 window.addEventListener('click', (event) => {
     if (event.target == storeConfigModal) {
         storeConfigModal.style.display = 'none';
     }
 });
 
-// Lắng nghe sự kiện lưu cấu hình
-saveConfigBtn.addEventListener('click', async () => {
-    const newStoreName = storeNameInput.value;
-    const newStoreAddress = storeAddressInput.value;
+// ---------------- HOA RƠI: INPUT + SAVE ----------------
+let symbols = [];
+const symbolsList = document.getElementById("symbols-list");
+const addSymbolBtn = document.getElementById("add-symbol-btn");
 
-    if (newStoreName && newStoreAddress) {
-        try {
-            const configRef = firebase.firestore().collection('config').doc('storeInfo');
-            await configRef.set({
-                storeName: newStoreName,
-                storeAddress: newStoreAddress
-            });
-            alert('Đã lưu cấu hình thành công!');
-            storeConfigModal.style.display = 'none'; // Sử dụng tên biến mới
-        } catch (error) {
-            console.error("Lỗi khi lưu cấu hình: ", error);
-            alert('Có lỗi xảy ra khi lưu cấu hình.');
-        }
-    } else {
+function addSymbolRow(symbol = "", color = "#ff69b4") {
+  const row = document.createElement("div");
+  row.className = "flex items-center space-x-2";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = symbol;
+  input.placeholder = "🌸 hoặc chữ";
+  input.className = "px-2 py-1 border rounded w-1/2";
+
+  const colorPicker = document.createElement("input");
+  colorPicker.type = "color";
+  colorPicker.value = color;
+   colorPicker.className = "w-8 h-8 p-0 border rounded";
+
+  const removeBtn = document.createElement("button");
+  removeBtn.textContent = "❌";
+  removeBtn.className = "px-1 py-1 bg-red-500 text-white rounded text-xs";
+  removeBtn.onclick = () => row.remove();
+
+  row.appendChild(input);
+  row.appendChild(colorPicker);
+  row.appendChild(removeBtn);
+  symbolsList.appendChild(row);
+}
+
+addSymbolBtn?.addEventListener("click", () => addSymbolRow());
+
+// ---------------- LƯU CẤU HÌNH ----------------
+saveConfigBtn.addEventListener('click', async () => {
+    const newStoreName = storeNameInput.value.trim();
+    const newStoreAddress = storeAddressInput.value.trim();
+    const newSymbols = [];
+
+    symbolsList.querySelectorAll("div.flex").forEach(row => {
+        const text = row.querySelector('input[type="text"]').value.trim();
+        const color = row.querySelector('input[type="color"]').value;
+        if (text) newSymbols.push({ text, color });
+    });
+
+    if (!newStoreName || !newStoreAddress) {
         alert('Vui lòng điền đầy đủ tên và địa chỉ.');
+        return;
+    }
+
+    try {
+        await configRef.set({
+            storeName: newStoreName,
+            storeAddress: newStoreAddress,
+            fallingSymbols: newSymbols
+        });
+        alert('Đã lưu cấu hình thành công!');
+        storeConfigModal.style.display = 'none';
+        symbols = newSymbols;
+        storeNameElement.textContent = newStoreName;
+        storeAddressElement.textContent = newStoreAddress;
+    } catch (error) {
+        console.error("Lỗi khi lưu cấu hình: ", error);
+        alert('Có lỗi xảy ra khi lưu cấu hình.');
     }
 });
 
-// Đọc dữ liệu từ Firebase khi tải trang
-const configRef = firebase.firestore().collection('config').doc('storeInfo');
+// ---------------- LOAD CẤU HÌNH TỪ FIREBASE ----------------
 configRef.get().then((doc) => {
     if (doc.exists) {
         const data = doc.data();
-        storeNameElement.textContent = data.storeName;
-        storeAddressElement.textContent = data.storeAddress;
+        storeNameElement.textContent = data.storeName || "";
+        storeAddressElement.textContent = data.storeAddress || "";
+        symbols = Array.isArray(data.fallingSymbols) ? data.fallingSymbols : [];
     }
 }).catch((error) => {
     console.error("Lỗi khi đọc cấu hình: ", error);
 });
 
+// ---------------- HOA RƠI ANIMATION ----------------
+const fallingContainer = document.getElementById("falling-container") || (() => {
+  const div = document.createElement("div");
+  div.id = "falling-container";
+  div.style.position = "fixed";
+  div.style.top = "0";
+  div.style.left = "0";
+  div.style.width = "100%";
+  div.style.height = "100%";
+  div.style.pointerEvents = "none";
+  div.style.zIndex = "9999";
+  document.body.appendChild(div);
+  return div;
+})();
+
+function createFallingElement() {
+  if (!symbols || symbols.length === 0) return;
+  const cfg = symbols[Math.floor(Math.random() * symbols.length)];
+  if (!cfg) return;
+
+  const el = document.createElement("div");
+  el.textContent = cfg.text;
+  el.style.color = cfg.color;
+  el.style.position = "absolute";
+  el.style.left = `${Math.random()*100}vw`;
+  el.style.top = "-50px";
+  el.style.fontSize = `${Math.random()*20 + 30}px`;
+  el.style.animation = `fall ${Math.random()*5+3}s linear`;
+  fallingContainer.appendChild(el);
+  setTimeout(() => el.remove(), 7000);
+}
+
+for (let i=0;i<7;i++) createFallingElement();
+setInterval(createFallingElement, 2000);
+
+// CSS cho hiệu ứng rơi
+const style = document.createElement("style");
+style.textContent = `
+@keyframes fall {
+  0% { transform: translateY(0); opacity:1; }
+  100% { transform: translateY(100vh); opacity:0; }
+}`;
+document.head.appendChild(style);
+
 </script>
+
 <script>
 function updateStoreInfo(name, address) {
   // Home

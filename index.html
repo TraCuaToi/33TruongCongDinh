@@ -694,7 +694,16 @@ height: 20px;
   line-height: 1.6;   /* 👈 giãn dòng */
   white-space: pre-line; /* 👈 giữ xuống dòng nếu có */
 }
-
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Thay đổi kích thước tại đây */
+    width: 90%; /* Chiều rộng tối đa trên di động */
+    max-width: 300px; /* Chiều rộng tối đa trên màn hình lớn */
+    margin: auto; /* Căn giữa theo chiều ngang */
+}
 
 /* Toast */
 .toast-container{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:4000}
@@ -734,15 +743,15 @@ height: 20px;
           <button id="auth-button">Đăng nhập</button>
           <button id="cart-button">Giỏ Hàng (<span id="cart-count">0</span>)</button>
 	  <button id="manage-menu-btn" style="display:none;">Quản lý menu</button>
-
+	  <button id="config-btn" style="display:none;">Cấu hình</button>
         </div>
     </div>
     
-    <div class="store-info-section">
-        <div id="falling-container"></div>
-        <h1 class="store-name-main">Commissioning</h1>
-        <p class="store-address">Đường số 6,Khu Công Nghiệp Đông Xuyên</p>
-    </div>
+  <div class="store-info-section">
+    <div id="falling-container"></div>
+    <h1 id="store-name" class="store-name-main"></h1>
+    <p id="store-address" class="store-address-main"></p>
+  </div>
     
     <div class="content-container">
         <!-- Sidebar initially hidden -->
@@ -1847,6 +1856,7 @@ auth.onAuthStateChanged(user => {
             createUserBtnModal.style.display = 'block';
             deleteAllOrdersBtn.style.display = 'block';
             if (manageMenuBtn) manageMenuBtn.style.display = 'inline-block';
+	 
         } else {
             createUserBtnModal.style.display = 'none';
             deleteAllOrdersBtn.style.display = 'none';
@@ -2442,19 +2452,105 @@ document.addEventListener('click', async (event) => {
       }
     });
   });
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////
 </script>
+
+
+
+<div id="config-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2 class="text-xl font-bold mb-4">Cấu hình thông tin quán</h2>
+        <div class="mb-4">
+            <label for="store-name-input" class="block text-gray-700 font-bold mb-2">Tên quán:</label>
+            <input type="text" id="store-name-input" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="mb-4">
+            <label for="store-address-input" class="block text-gray-700 font-bold mb-2">Địa chỉ:</label>
+            <input type="text" id="store-address-input" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <button id="save-config-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Lưu thay đổi</button>
+    </div>
+</div>
+
+<script>
+const storeNameElement = document.getElementById('store-name');
+const storeAddressElement = document.getElementById('store-address');
+
+const configBtn = document.getElementById('config-btn');
+const storeConfigModal = document.getElementById('config-modal'); // Đã đổi tên biến tại đây
+const closeBtn = document.querySelector('.close-button');
+const storeNameInput = document.getElementById('store-name-input');
+const storeAddressInput = document.getElementById('store-address-input');
+const saveConfigBtn = document.getElementById('save-config-btn');
+
+// Lắng nghe trạng thái đăng nhập để hiển thị nút Cấu hình
+firebase.auth().onAuthStateChanged(user => {
+    const configBtn = document.getElementById('config-btn');
+    if (user && user.email === 'admin@myapp.com') {
+        // Hiển thị nút nếu là admin
+        configBtn.style.display = 'block'; 
+    } else {
+        // Ẩn nút nếu không phải admin
+        configBtn.style.display = 'none'; 
+    }
+});
+
+// Mở modal cấu hình
+configBtn.addEventListener('click', () => {
+    storeConfigModal.style.display = 'flex'; // Sử dụng tên biến mới
+    // Đổ dữ liệu hiện tại vào input
+    storeNameInput.value = storeNameElement.textContent;
+    storeAddressInput.value = storeAddressElement.textContent;
+});
+
+// Thêm sự kiện click để đóng modal khi bấm vào nút "X"
+closeBtn.addEventListener('click', () => {
+    storeConfigModal.style.display = 'none';
+});
+
+// Thêm sự kiện click để đóng modal khi click ra ngoài
+window.addEventListener('click', (event) => {
+    if (event.target == storeConfigModal) {
+        storeConfigModal.style.display = 'none';
+    }
+});
+
+// Lắng nghe sự kiện lưu cấu hình
+saveConfigBtn.addEventListener('click', async () => {
+    const newStoreName = storeNameInput.value;
+    const newStoreAddress = storeAddressInput.value;
+
+    if (newStoreName && newStoreAddress) {
+        try {
+            const configRef = firebase.firestore().collection('config').doc('storeInfo');
+            await configRef.set({
+                storeName: newStoreName,
+                storeAddress: newStoreAddress
+            });
+            alert('Đã lưu cấu hình thành công!');
+            storeConfigModal.style.display = 'none'; // Sử dụng tên biến mới
+        } catch (error) {
+            console.error("Lỗi khi lưu cấu hình: ", error);
+            alert('Có lỗi xảy ra khi lưu cấu hình.');
+        }
+    } else {
+        alert('Vui lòng điền đầy đủ tên và địa chỉ.');
+    }
+});
+
+// Đọc dữ liệu từ Firebase khi tải trang
+const configRef = firebase.firestore().collection('config').doc('storeInfo');
+configRef.get().then((doc) => {
+    if (doc.exists) {
+        const data = doc.data();
+        storeNameElement.textContent = data.storeName;
+        storeAddressElement.textContent = data.storeAddress;
+    }
+}).catch((error) => {
+    console.error("Lỗi khi đọc cấu hình: ", error);
+});
+</script>
+
 </body>
 </html>
 

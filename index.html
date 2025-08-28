@@ -2799,7 +2799,7 @@ function updateStoreInfo(name, address) {
   // Popup (nếu có trong DOM)
   const popupName = document.getElementById("store-name-receipt");
   const popupAddr = document.getElementById("store-address-receipt");
-  if (popupName) popupName.textContent = "🍵 " + name + " 🍵";
+  if (popupName) popupName.textContent = name;
   if (popupAddr) popupAddr.textContent = address;
 }
 
@@ -2814,4 +2814,5 @@ configRef.get().then(doc => {
 
 </body>
 </html>
+
 

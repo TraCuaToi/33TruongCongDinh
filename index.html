@@ -777,22 +777,38 @@ height: 20px;
 	</p>
 
 
-            </div>
-
-            <div id="order-list-container" style="display: none;">
-              <h2>Danh Sách Đơn Hàng</h2>
-              <div id="order-stats-header" class="order-stats-header">
-                <div class="order-stats-item">Tổng đơn: <strong id="total-orders-count">0</strong></div>
-                <div class="order-stats-item">Đã hoàn thành: <strong id="completed-orders-count">0</strong></div>
-                <div class="order-stats-item">Chưa hoàn thành: <strong id="incomplete-orders-count">0</strong></div>
-                <div class="order-stats-item">Tổng tiền: <strong id="total-revenue">0₫</strong></div>
-                <button id="delete-all-orders-btn" class="delete-all-orders-btn" style="display:none;">Xóa tất cả đơn hàng</button>
-              </div>
-              <div id="order-list">Không có đơn hàng nào.</div>
-            </div>
-        </div>
-    </div>
+<div id="order-list-container" style="display: none;">
+  <h2>Danh Sách Đơn Hàng</h2>
+  <div id="order-stats-header" class="order-stats-header">
+    <div class="order-stats-item">Tổng đơn: <strong id="total-orders-count">0</strong></div>
+    <div class="order-stats-item">Đã hoàn thành: <strong id="completed-orders-count">0</strong></div>
+    <div class="order-stats-item">Chưa hoàn thành: <strong id="incomplete-orders-count">0</strong></div>
+    <div class="order-stats-item">Tổng tiền: <strong id="total-revenue">0₫</strong></div>
+    <button id="delete-all-orders-btn" class="delete-all-orders-btn" style="display:none;">
+      Xóa tất cả đơn hàng
+    </button>
   </div>
+  <div id="order-list">Không có đơn hàng nào.</div>
+</div>
+
+<!-- Khối ghi chú -->
+<div id="notes-section" class="hidden h-[4cm] overflow-y-auto mt-[1cm]">
+  <h2 class="text-xl font-bold mb-4 text-center">Ghi Chú Chung</h2>
+  
+  <div id="notes-display-area"  class="bg-green-100 p-4 rounded-lg shadow-inner mb-4 h-[5cm] overflow-y-auto"></div>
+
+  <div class="note-input-group flex h-[1cm]">
+    <textarea id="note-input-box" 
+      class="flex-grow p-2 border rounded-l-lg h-full resize-none overflow-hidden" 
+      placeholder="Viết ghi chú mới..."></textarea>
+  
+    <button id="add-note-button" 
+      class="bg-green-500 text-white px-3 rounded-r-lg hover:bg-green-600 transition-colors h-full">
+      Gửi
+    </button>
+  </div>
+</div>
+
 
   <div id="authModal" class="modal">
     <div class="modal-content" style="max-width: 350px;">
@@ -1858,12 +1874,17 @@ auth.onAuthStateChanged(user => {
         // Nếu muốn, có thể hiển thị order read-only
         // listenForOrders(ordersCollection); // gọi nhưng disable thao tác nếu chưa login
     }
+	    const notesSection = document.getElementById('notes-section');
+  	  if (user) {
+    	    notesSection.classList.remove('hidden');
+     	   // Sau khi hiện, bạn cần tải ghi chú
+     	   loadNotes(); 
+   	 } else {
+      	  notesSection.classList.add('hidden');
+    	 }
+
+
 });
-
-
-
-
-
 
 function listenForOrders(collection) {
     // Ngừng lắng nghe nếu đã tồn tại
@@ -2021,12 +2042,6 @@ function listenForOrders(collection) {
     });
 }
 
-
-
-
-
-
-
     async function toggleOrderCompleted(e) {
       const orderCard = e.target.closest('.order-card');
       const orderId = orderCard.dataset.id;
@@ -2139,8 +2154,6 @@ function subscribeMenu() {
 <div id="toast-container" class="toast-container"></div>
 <!-- Thư viện để chụp popup thành ảnh -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-
 
 <script>
 document.getElementById('save-popup-btn').addEventListener('click', () => {
@@ -2309,6 +2322,101 @@ ordersCollection.onSnapshot(querySnapshot => {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
+
+// Tham chiếu đến collection ghi chú
+// Tham chiếu đến collection ghi chú trên Firestore
+const notesCollection = firebase.firestore().collection('notes');
+
+// Hàm hiển thị một ghi chú trên giao diện người dùng
+function renderNote(noteDoc) {
+    // Lấy dữ liệu của ghi chú từ document
+    const noteData = noteDoc.data();
+    
+    // Kiểm tra xem người dùng hiện tại có phải admin hay không
+    // (Giả định email admin là "admin@commissioning.com")
+    const isCurrentUserAdmin = auth.currentUser?.email === "admin@myapp.com";
+    
+    // Kiểm tra xem người dùng hiện tại có phải là người tạo ghi chú hay không
+    const isNoteOwner = auth.currentUser?.email === noteData.nguoiTao;
+
+    // Tạo phần tử HTML cho ghi chú
+    const noteEl = document.createElement('div');
+    noteEl.className = 'note-item p-2 border-b border-gray-300 last:border-b-0 flex justify-between items-start';
+    
+    // Chèn nội dung của ghi chú vào phần tử
+    noteEl.innerHTML = `
+        <div class="flex-grow">
+            <strong>${noteData.nguoiTao}:</strong>
+            <p class="inline-block ml-2">${noteData.noiDung}</p>
+            <span class="block text-right text-gray-500 text-xs mt-1">${new Date(noteData.thoiGian).toLocaleString('vi-VN')}</span>
+        </div>
+    `;
+
+    // Quyết định có hiển thị nút xóa hay không
+    // Nút xóa chỉ hiển thị nếu người dùng là admin HOẶC là chủ sở hữu ghi chú đó
+    if (isCurrentUserAdmin || isNoteOwner) {
+        // Tạo nút xóa
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'xóa';
+        deleteBtn.className = 'delete-note-btn ml-4 text-red-500 hover:text-red-700 font-bold';
+        deleteBtn.dataset.noteId = noteDoc.id;
+        
+        // Thêm nút xóa vào phần tử ghi chú
+        noteEl.appendChild(deleteBtn);
+    }
+    
+    // Thêm ghi chú mới tạo vào đầu khu vực hiển thị
+    document.getElementById('notes-display-area').prepend(noteEl);
+}
+
+// Hàm tải ghi chú từ Firebase
+function loadNotes() {
+    notesCollection.orderBy('thoiGian', 'desc').onSnapshot(snapshot => {
+        const notesDisplayArea = document.getElementById('notes-display-area');
+        notesDisplayArea.innerHTML = ''; // Xóa nội dung cũ
+        snapshot.forEach(doc => {
+            renderNote(doc);
+        });
+    });
+}
+
+
+// Sự kiện cho nút Gửi ghi chú
+document.getElementById('add-note-button').addEventListener('click', async () => {
+    const noteInputBox = document.getElementById('note-input-box');
+    const noteContent = noteInputBox.value.trim();
+    if (noteContent && auth.currentUser) {
+        const newNote = {
+            nguoiTao: auth.currentUser.email,
+            noiDung: noteContent,
+            thoiGian: new Date().toISOString() // ✨ Sử dụng thời gian cục bộ thay vì server timestamp
+        };
+        await notesCollection.add(newNote);
+        noteInputBox.value = '';
+    }
+});
+
+// Sự kiện cho nút Xóa ghi chú
+document.addEventListener('click', async (event) => {
+    if (event.target.matches('.delete-note-btn')) {
+        const noteId = event.target.dataset.noteId;
+        const noteRef = notesCollection.doc(noteId);
+        
+        // Kiểm tra quyền trước khi xóa
+        const doc = await noteRef.get();
+        if (doc.exists) {
+            const noteData = doc.data();
+            const isCurrentUserAdmin = auth.currentUser && auth.currentUser.email === "admin@myapp.com";
+            const isNoteOwner = auth.currentUser && auth.currentUser.email === noteData.nguoiTao;
+
+            if (isCurrentUserAdmin || isNoteOwner) {
+                await noteRef.delete();
+            } else {
+                alert("Bạn không có quyền xóa ghi chú này.");
+            }
+        }
+    }
+});
 
 ///////////////////////////////////////////////////////////////////////////////////////
 </script>

@@ -782,7 +782,8 @@ height: 20px;
             <div id="order-search-section" style="margin-top: 40px; width: 100%; max-width: 1200px;">
                 <h2 style="margin-bottom: 10px;">Tra cứu Đơn Hàng</h2>
                 <div class="search-order-form">
-                    <input type="text" id="search-phone-number" placeholder="Nhập 3 số cuối SĐT" pattern="\d{3}" maxlength="3" title="Vui lòng nhập 3 chữ số.">
+                  
+		    <input type="text" id="search-phone-number" placeholder="Nhập 3 số cuối SĐT" pattern="\d{3}" maxlength="3" title="Vui lòng nhập 3 chữ số." style="width: 200px;">
                     <button id="search-order-btn">Tìm kiếm</button>  
                 </div>
 	<p style="
@@ -903,7 +904,9 @@ height: 20px;
         Tổng cộng: <span id="cart-total-price">0₫</span>
       </div>
       <div>
-        <label for="phone-number">3 số cuối SĐT của bạn:</label>
+        <label for="phone-number" style="font-size: 12px;">
+ 	  Nhập 3 số cuối SĐT nếu mang về:<br>Hoặc số bàn nếu dùng tại quán
+	</label>
         <input type="text" id="phone-number" placeholder="" required pattern="\d{3}" maxlength="3" title="Vui lòng nhập 3 chữ số cuối.">
         <label for="notes">Ghi chú chung cho đơn hàng:</label>
         <textarea id="notes" placeholder="Ví dụ: Giao hàng vào buổi chiều..."></textarea>

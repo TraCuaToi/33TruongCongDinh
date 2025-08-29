@@ -2699,7 +2699,7 @@ function updateHeartEffect(enabled, symbol) {
         heartEffectInterval = setInterval(() => {
             //heartEffectContainer.innerHTML = "";
             createHeartEffect(symbol);
-        }, 5000);
+        }, 3000);
         
         createHeartEffect(symbol);
     }
@@ -2739,7 +2739,7 @@ function createHeartEffect(symbol) {
         // Remove the icon after the animation
         setTimeout(() => {
             icon.remove();
-        }, 5000);
+        }, 3200);
     });
 }
 
@@ -2780,6 +2780,7 @@ configRef.get().then(doc => {
 
 </body>
 </html>
+
 
 
 

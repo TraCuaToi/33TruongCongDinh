@@ -2671,14 +2671,14 @@ function createFallingElement() {
     el.style.position = "absolute";
     el.style.left = `${Math.random()*100}vw`;
     el.style.top = "-50px";
-    el.style.fontSize = `${Math.random()*20 + 10}px`;
+    el.style.fontSize = `${Math.random()*20 + 20}px`;
     el.style.animation = `fall ${Math.random()*1+5}s linear`;
     fallingContainer.appendChild(el);
     setTimeout(() => el.remove(), 6000);
 }
 
-for (let i = 0; i < 7; i++) createFallingElement();
-setInterval(createFallingElement, 2000);
+for (let i = 0; i < 15; i++) createFallingElement();
+setInterval(createFallingElement, 1000);
 
 const style = document.createElement("style");
 style.textContent = `
@@ -2780,6 +2780,7 @@ configRef.get().then(doc => {
 
 </body>
 </html>
+
 
 
 

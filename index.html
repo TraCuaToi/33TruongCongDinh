@@ -2707,7 +2707,7 @@ function updateHeartEffect(enabled, symbol) {
 
 function createHeartEffect(symbol) {
     const heartPoints = generateHeartPoints(100);
-    const iconSize = 35;
+    const iconSize = 25;
 
     heartPoints.forEach((point, index) => {
         const icon = document.createElement('div');
@@ -2726,7 +2726,7 @@ function createHeartEffect(symbol) {
 
         setTimeout(() => {
             // Use a single scaling factor based on the smaller screen dimension
-            const scaleFactor = Math.min(window.innerWidth, window.innerHeight) / 1500;
+            const scaleFactor = Math.min(window.innerWidth, window.innerHeight) / 1800;
 
             const finalX = (window.innerWidth / 2) + (point.x * scaleFactor) - (iconSize / 2);
             const finalY = (window.innerHeight / 2) + (point.y * scaleFactor) - (iconSize / 2);
@@ -2787,5 +2787,6 @@ configRef.get().then(doc => {
 
 </body>
 </html>
+
 
 

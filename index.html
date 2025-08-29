@@ -2669,7 +2669,7 @@ function createFallingElement() {
     el.textContent = cfg.text;
     el.style.color = cfg.color;
     el.style.position = "absolute";
-    el.style.left = `${Math.random()*100}vw`-30px;
+    el.style.left = `${Math.random()*100}vw`;
     el.style.top = "-50px";
     el.style.fontSize = `${Math.random()*20 + 30}px`;
     el.style.animation = `fall ${Math.random()*5+3}s linear`;
@@ -2787,6 +2787,7 @@ configRef.get().then(doc => {
 
 </body>
 </html>
+
 
 
 

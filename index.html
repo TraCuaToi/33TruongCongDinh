@@ -2707,7 +2707,7 @@ function updateHeartEffect(enabled, symbol) {
 
 function createHeartEffect(symbol) {
     const heartPoints = generateHeartPoints(100);
-    const iconSize = 15;
+    const iconSize = 35;
 
     heartPoints.forEach((point, index) => {
         const icon = document.createElement('div');
@@ -2725,20 +2725,25 @@ function createHeartEffect(symbol) {
         icon.style.opacity = '1';
 
         setTimeout(() => {
-            const finalX = (window.innerWidth / 2) + (point.x * window.innerWidth / 3400) - (iconSize / 2);
-            const finalY = (window.innerHeight / 2) + (point.y * window.innerHeight / 2200) - (iconSize / 2);
+            // Use a single scaling factor based on the smaller screen dimension
+            const scaleFactor = Math.min(window.innerWidth, window.innerHeight) / 1500;
+
+            const finalX = (window.innerWidth / 2) + (point.x * scaleFactor) - (iconSize / 2);
+            const finalY = (window.innerHeight / 2) + (point.y * scaleFactor) - (iconSize / 2);
+
             icon.style.transform = `translate(${finalX - startX}px, ${finalY - startY}px)`;
         }, 50);
 
         heartEffectContainer.appendChild(icon);
 
-        // xóa icon riêng sau animation
+        // Remove the icon after the animation
         setTimeout(() => {
             icon.remove();
         }, 5000);
     });
 }
 
+// The generateHeartPoints function remains the same
 function generateHeartPoints(count) {
     const points = [];
     for (let i = 0; i < count; i++) {

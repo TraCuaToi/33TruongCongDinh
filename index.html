@@ -325,6 +325,28 @@
       border-radius: 4px;
       width: 100%;
     }
+.symbol-input-override {
+    width: auto !important;  /* cho phép nhỏ lại */
+    min-width: 0 !important; /* flex cho phép shrink */
+    height: 28px !important; /* chỉnh chiều cao */
+    padding: 2px 4px !important; /* thu gọn padding */
+    font-size: 0.85rem !important;
+}
+
+.color-picker-small {
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+}
+
+.remove-btn-small {
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    font-size: 0.8rem !important;
+}
+
+
     .modal-content button {
       background-color: #2196f3;
       color: white;
@@ -714,6 +736,9 @@ height: 20px;
     pointer-events: none; /* Rất quan trọng để người dùng có thể tương tác với nội dung bên dưới */
     z-index: 9999;
 }
+.h-auto-important {
+  height: auto !important;
+}
 
 
 /* Toast */
@@ -1045,7 +1070,7 @@ function showToast(title, message){
   t.querySelector('.t-close').onclick = close;
   setTimeout(close, 5000);
 
-  if (navigator.vibrate) navigator.vibrate(80);
+ 
 
   try { new Audio('notify.mp3').play().catch(()=>{}); } catch(e){}
 }
@@ -1861,6 +1886,7 @@ auth.onAuthStateChanged(user => {
 });
 
 function listenForOrders(collection) {
+    let initialSnapshot  = null; // <-- đặt ở đây
     // Ngừng lắng nghe nếu đã tồn tại
     if (typeof unsubscribe !== 'undefined') {
         unsubscribe();
@@ -1996,19 +2022,8 @@ function listenForOrders(collection) {
         });
 
         // Xử lý thông báo đơn hàng mới
-        const added = snapshot.docChanges().filter(c => c.type === 'added');
-        if (!initialSnapshot && added.length) {
-            added.forEach(ch => {
-                const o = ch.doc.data();
-                const total = (o.items || []).reduce((s, it) => s + (it.price || 0) * (it.quantity || 0), 0);
-                const when = o.timestamp ? o.timestamp.toDate().toLocaleTimeString('vi-VN') : '';
-                showToast(
-                    `Đơn mới: ${o.phoneNumber || ''}`,
-                    `Tổng: ${total.toLocaleString('vi-VN')}₫ • ${when}`
-                );
-            });
-        }
-        initialSnapshot = false;
+	
+
 
     }, err => {
         console.error('Lỗi khi lấy đơn hàng:', err);
@@ -2435,6 +2450,12 @@ document.addEventListener('click', async (event) => {
 
 
 
+
+
+
+
+
+
 <div id="config-modal" class="modal">
     <div class="modal-content">
         <span class="close-button">&times;</span>
@@ -2447,22 +2468,22 @@ document.addEventListener('click', async (event) => {
             <label for="store-address-input" class="block text-gray-700 font-bold mb-2">Địa chỉ:</label>
             <input type="text" id="store-address-input" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
-	<div class="mb-4">
- 	 <label class="block text-gray-700 font-bold mb-2">Biểu tượng/hoa rơi:</label>
- 	 <div id="symbols-list" class="space-y-2"></div>
-	  <button id="add-symbol-btn" type="button"
-          class="mt-2 bg-green-500 text-white px-3 py-1 rounded">+ Thêm</button>
-	</div>
-	<div class="mb-4">
-    <h3 class="text-xl font-bold mb-2">Hiệu ứng trái tim</h3>
-    <div class="flex items-center space-x-2 mb-2">
-        <label class="block text-gray-700 font-bold">Bật hiệu ứng:</label>
-        <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="heart-effect-toggle" class="sr-only peer">
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full 	peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border 	after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-        </label>
-    </div>
-</div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">Biểu tượng/hoa rơi:</label>
+            <div id="symbols-list" class="space-y-2"></div>
+            <button id="add-symbol-btn" type="button"
+                class="mt-2 bg-green-500 text-white px-3 py-1 rounded">+ Thêm</button>
+        </div>
+        <div class="mb-4">
+            <h3 class="text-xl font-bold mb-2">Hiệu ứng trái tim</h3>
+            <div class="flex items-center space-x-2 mb-2">
+                <label class="block text-gray-700 font-bold">Bật hiệu ứng:</label>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="heart-effect-toggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-['']    				after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+        </div>
         <button id="save-config-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Lưu thay đổi</button>
     </div>
 </div>
@@ -2493,35 +2514,35 @@ const heartEffectContainer = document.getElementById("heart-effect-container") |
     return div;
 })();
 let heartEffectInterval = null;
-// 🔹 Quan trọng: khai báo configRef 1 lần duy nhất
+let symbols = [];
+const symbolsList = document.getElementById("symbols-list");
+const addSymbolBtn = document.getElementById("add-symbol-btn");
+
 const configRef = firebase.firestore().collection('config').doc('storeInfo');
 
-// ---------------- AUTH (hiện nút cấu hình cho admin) ----------------
+// ---------------- AUTH ----------------
 firebase.auth().onAuthStateChanged(user => {
     if (user && user.email === 'admin@myapp.com') {
-        configBtn.style.display = 'block'; 
+        configBtn.style.display = 'block';
     } else {
-        configBtn.style.display = 'none'; 
+        configBtn.style.display = 'none';
     }
 });
 
 // ---------------- MỞ / ĐÓNG MODAL ----------------
 configBtn.addEventListener('click', () => {
     storeConfigModal.style.display = 'flex';
-    // Đổ dữ liệu hiện tại
     storeNameInput.value = storeNameElement.textContent;
     storeAddressInput.value = storeAddressElement.textContent;
-    // Đổ biểu tượng hoa rơi
     symbolsList.innerHTML = "";
     symbols.forEach(s => addSymbolRow(s.text, s.color));
     
-    // ĐẢM BẢO LUÔN CÓ ÍT NHẤT 2 Ô NHẬP LIỆU
     if (symbols.length < 2) {
         for(let i = symbols.length; i < 2; i++) {
             addSymbolRow("", "#ff69b4");
         }
     }
-    // Cập nhật trạng thái nút toggle
+    
     configRef.get().then(doc => {
         const data = doc.data();
         if (data && heartEffectToggle) {
@@ -2540,34 +2561,37 @@ window.addEventListener('click', (event) => {
 });
 
 // ---------------- HOA RƠI: INPUT + SAVE ----------------
-let symbols = [];
-const symbolsList = document.getElementById("symbols-list");
-const addSymbolBtn = document.getElementById("add-symbol-btn");
-
 function addSymbolRow(symbol = "", color = "#ff69b4") {
-  const row = document.createElement("div");
-  row.className = "flex items-center space-x-2";
+    const row = document.createElement("div");
+    row.className = "flex items-center space-x-2";
 
-  const input = document.createElement("input");
-  input.type = "text";
-  input.value = symbol;
-  input.placeholder = "🌸 hoặc chữ";
-  input.className = "px-2 py-1 border rounded w-1/2";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = symbol;
+    input.placeholder = "🌸 hoặc chữ";
+    input.className = "flex-1 px-4 py-2 border rounded min-w-0";
+    // ← Thêm class custom ở đây
+    input.classList.add("symbol-input-override");
 
-  const colorPicker = document.createElement("input");
-  colorPicker.type = "color";
-  colorPicker.value = color;
-   colorPicker.className = "w-8 h-8 p-0 border rounded";
+    const colorPicker = document.createElement("input");
+    colorPicker.type = "color";
+    colorPicker.value = color;
+    colorPicker.className = "w-8 h-8 p-0 border rounded";
+    // ← Thêm class custom ở đây
+    colorPicker.classList.add("color-picker-small");
 
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "❌";
-  removeBtn.className = "px-1 py-1 bg-red-500 text-white rounded text-xs";
-  removeBtn.onclick = () => row.remove();
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "❌";
+    removeBtn.className = "w-8 h-8 bg-red-500 text-white rounded";
+    // ← Thêm class custom ở đây
+    removeBtn.classList.add("remove-btn-small");
+    removeBtn.onclick = () => row.remove();
 
-  row.appendChild(input);
-  row.appendChild(colorPicker);
-  row.appendChild(removeBtn);
-  symbolsList.appendChild(row);
+    row.appendChild(input);
+    row.appendChild(colorPicker);
+    row.appendChild(removeBtn);
+
+    symbolsList.appendChild(row);
 }
 
 addSymbolBtn?.addEventListener("click", () => addSymbolRow());
@@ -2577,48 +2601,35 @@ saveConfigBtn.addEventListener('click', async () => {
     const newStoreName = storeNameInput.value.trim();
     const newStoreAddress = storeAddressInput.value.trim();
     const newSymbols = [];
-
     symbolsList.querySelectorAll("div.flex").forEach(row => {
         const text = row.querySelector('input[type="text"]').value.trim();
         const color = row.querySelector('input[type="color"]').value;
         if (text) newSymbols.push({ text, color });
     });
-
     if (!newStoreName || !newStoreAddress) {
         alert('Vui lòng điền đầy đủ tên và địa chỉ.');
         return;
     }
-
-    // LẤY DỮ LIỆU TỪ 2 Ô ĐẦU TIÊN CHO HIỆU ỨNG TRÁI TIM
     const newHeartSymbol = newSymbols.length > 0 ? newSymbols[0].text : null;
-    const newHeartText = newSymbols.length > 1 ? newSymbols[1].text : null;
     const newHeartEffectEnabled = heartEffectToggle.checked;
-
     try {
         await configRef.set({
             storeName: newStoreName,
             storeAddress: newStoreAddress,
             fallingSymbols: newSymbols,
             heartSymbol: newHeartSymbol,
-            heartText: newHeartText,
             heartEffectEnabled: newHeartEffectEnabled
         });
-        
         alert('Đã lưu cấu hình thành công!');
         storeConfigModal.style.display = 'none';
-        symbols = newSymbols;
-        storeNameElement.textContent = newStoreName;
-        storeAddressElement.textContent = newStoreAddress;
-
-        updateHeartEffect(newHeartEffectEnabled, newHeartSymbol, newHeartText);
-
     } catch (error) {
         console.error("Lỗi khi lưu cấu hình: ", error);
         alert('Có lỗi xảy ra khi lưu cấu hình.');
     }
 });
-// ---------------- LOAD CẤU HÌNH TỪ FIREBASE ----------------
-configRef.get().then((doc) => {
+
+// ---------------- TẢI VÀ CẬP NHẬT CẤU HÌNH TỰ ĐỘNG TỪ FIREBASE ----------------
+configRef.onSnapshot((doc) => {
     if (doc.exists) {
         const data = doc.data();
         storeNameElement.textContent = data.storeName || "";
@@ -2630,73 +2641,71 @@ configRef.get().then((doc) => {
             heartEffectToggle.checked = heartEnabled;
         }
 
-        updateHeartEffect(heartEnabled, data.heartSymbol, data.heartText);
+        updateHeartEffect(heartEnabled, data.heartSymbol);
     }
-}).catch((error) => {
-    console.error("Lỗi khi đọc cấu hình: ", error);
 });
 
 // ---------------- HOA RƠI ANIMATION ----------------
 const fallingContainer = document.getElementById("falling-container") || (() => {
-  const div = document.createElement("div");
-  div.id = "falling-container";
-  div.style.position = "fixed";
-  div.style.top = "0";
-  div.style.left = "0";
-  div.style.width = "100%";
-  div.style.height = "100%";
-  div.style.pointerEvents = "none";
-  div.style.zIndex = "9998";
-  document.body.appendChild(div);
-  return div;
+    const div = document.createElement("div");
+    div.id = "falling-container";
+    div.style.position = "fixed";
+    div.style.top = "0";
+    div.style.left = "0";
+    div.style.width = "100%";
+    div.style.height = "100%";
+    div.style.pointerEvents = "none";
+    div.style.zIndex = "9998";
+    document.body.appendChild(div);
+    return div;
 })();
 
 function createFallingElement() {
-  if (!symbols || symbols.length === 0) return;
-  const cfg = symbols[Math.floor(Math.random() * symbols.length)];
-  if (!cfg) return;
+    if (!symbols || symbols.length === 0) return;
+    const cfg = symbols[Math.floor(Math.random() * symbols.length)];
+    if (!cfg) return;
 
-  const el = document.createElement("div");
-  el.textContent = cfg.text;
-  el.style.color = cfg.color;
-  el.style.position = "absolute";
-  el.style.left = `${Math.random()*100}vw`;
-  el.style.top = "-50px";
-  el.style.fontSize = `${Math.random()*20 + 30}px`;
-  el.style.animation = `fall ${Math.random()*5+3}s linear`;
-  fallingContainer.appendChild(el);
-  setTimeout(() => el.remove(), 7000);
+    const el = document.createElement("div");
+    el.textContent = cfg.text;
+    el.style.color = cfg.color;
+    el.style.position = "absolute";
+    el.style.left = `${Math.random()*100}vw`;
+    el.style.top = "-50px";
+    el.style.fontSize = `${Math.random()*20 + 30}px`;
+    el.style.animation = `fall ${Math.random()*5+3}s linear`;
+    fallingContainer.appendChild(el);
+    setTimeout(() => el.remove(), 7000);
 }
 
-for (let i=0;i<7;i++) createFallingElement();
+for (let i = 0; i < 7; i++) createFallingElement();
 setInterval(createFallingElement, 2000);
 
-// CSS cho hiệu ứng rơi
 const style = document.createElement("style");
 style.textContent = `
 @keyframes fall {
-  0% { transform: translateY(0); opacity:1; }
-  100% { transform: translateY(100vh); opacity:0; }
+    0% { transform: translateY(0); opacity:1; }
+    100% { transform: translateY(100vh); opacity:0; }
 }`;
 document.head.appendChild(style);
 
-function updateHeartEffect(enabled, symbol, text) {
+// ---------------- HIỆU ỨNG TRÁI TIM ----------------
+function updateHeartEffect(enabled, symbol) {
     if (heartEffectInterval) {
         clearInterval(heartEffectInterval);
         heartEffectInterval = null;
     }
 
-    if (enabled && symbol && text) {
+    if (enabled && symbol) {
         heartEffectInterval = setInterval(() => {
-            heartEffectContainer.innerHTML = "";
-            createHeartEffect(symbol, text);
+            //heartEffectContainer.innerHTML = "";
+            createHeartEffect(symbol);
         }, 5000);
         
-        createHeartEffect(symbol, text);
+        createHeartEffect(symbol);
     }
 }
 
-function createHeartEffect(symbol, text) {
+function createHeartEffect(symbol) {
     const heartPoints = generateHeartPoints(100);
     const iconSize = 15;
 
@@ -2716,64 +2725,20 @@ function createHeartEffect(symbol, text) {
         icon.style.opacity = '1';
 
         setTimeout(() => {
-            const finalX = (window.innerWidth / 2) + (point.x * window.innerWidth / 1800) - (iconSize / 2);
-            const finalY = (window.innerHeight / 2) + (point.y * window.innerHeight / 1800) - (iconSize / 2);
+            const finalX = (window.innerWidth / 2) + (point.x * window.innerWidth / 3400) - (iconSize / 2);
+            const finalY = (window.innerHeight / 2) + (point.y * window.innerHeight / 2200) - (iconSize / 2);
             icon.style.transform = `translate(${finalX - startX}px, ${finalY - startY}px)`;
         }, 50);
 
         heartEffectContainer.appendChild(icon);
-    });
 
-// Tạo chữ xuất hiện sau 3 giây
-// Tạo chữ xuất hiện sau 3 giây
-setTimeout(() => {
-    const textElement = document.createElement('div');
-    textElement.textContent = text;
-    textElement.style.position = 'absolute';
-    textElement.style.left = '50%'
-    textElement.style.top = '50%';
-    
-    // 🔹 CHỈNH SỬA: Hiệu ứng to dần
-    textElement.style.transform = 'translate(-50%, -50%) scale(0.1)'; 
-    textElement.style.fontSize = '1.5rem'; // Kích thước ban đầu vừa phải
-    textElement.style.fontWeight = 'bold';
-    textElement.style.textShadow = '0 0 10px rgba(0,0,0,0.5)'; 
-    textElement.style.opacity = '0';
-    // 🔹 CHỈNH SỬA: Transition mạnh hơn và thời gian lâu hơn
-    textElement.style.transition = 'all 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)'; 
-    textElement.style.zIndex = '10000';
-    heartEffectContainer.appendChild(textElement);
-    textElement.style.color = '#ff0000';
-    // Hiệu ứng to dần và xuất hiện
-    setTimeout(() => {
-        // 🔹 CHỈNH SỬA: To hết màn hình (scale rất lớn)
-        textElement.style.transform = `translate(-50%, -50%) scale(${Math.max(window.innerWidth, window.innerHeight) / 200})`;
-        textElement.style.opacity = '1';
-    }, 50);
-
-    // Hiệu ứng nhấp nháy 3 lần (giữ nguyên)
-    let blinkCount = 0;
-    const blinkInterval = setInterval(() => {
-        textElement.style.opacity = (textElement.style.opacity == 1) ? 0.2 : 1;
-        blinkCount++;
-        if (blinkCount >= 6) { 
-            clearInterval(blinkInterval);
-            textElement.style.opacity = 1; 
-        }
-    }, 150);
-
-    // Hiệu ứng tan biến sau 4.5 giây (giữ nguyên)
-    setTimeout(() => {
-        heartEffectContainer.style.transition = 'opacity 0.5s ease-out';
-        heartEffectContainer.style.opacity = '0';
+        // xóa icon riêng sau animation
         setTimeout(() => {
-            heartEffectContainer.innerHTML = '';
-            heartEffectContainer.style.opacity = '1';
-            heartEffectContainer.style.transition = 'none';
-        }, 500);
-    }, 4500);
-}, 3000);
+            icon.remove();
+        }, 5000);
+    });
 }
+
 function generateHeartPoints(count) {
     const points = [];
     for (let i = 0; i < count; i++) {
@@ -2784,8 +2749,11 @@ function generateHeartPoints(count) {
     }
     return points;
 }
-
 </script>
+
+
+
+
 
 
 

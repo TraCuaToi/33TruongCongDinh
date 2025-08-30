@@ -988,6 +988,7 @@ height: 20px;
   <div class="modal-content">
     <span class="close" data-modal="manageMenuModal">&times;</span>
     <h3>Quản lý Menu</h3>
+    <input type="text" id="menu-search-input" onkeyup="searchMenuItems()" placeholder="Tìm kiếm món...">
     <div id="menu-admin-list" style="max-height: 360px; overflow-y: auto; margin-bottom: 12px;"></div>
     <hr style="margin: 12px 0;">
     <h4 id="menu-form-title">Thêm món mới</h4>
@@ -2776,7 +2777,33 @@ configRef.get().then(doc => {
     updateStoreInfo(data.storeName, data.storeAddress);
   }
 });
+
 </script>
+
+<script>
+function searchMenuItems() {
+    const searchValue = document.getElementById('menu-search-input').value.toLowerCase();
+    const menuItems = document.getElementById('menu-admin-list').children;
+
+    for (let i = 0; i < menuItems.length; i++) {
+        const item = menuItems[i];
+
+        // ✅ Lấy text từ .title thay vì dataset.name
+        const titleEl = item.querySelector('.title');
+        const foodName = titleEl ? titleEl.textContent.toLowerCase() : '';
+
+        if (foodName.includes(searchValue)) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    }
+}
+
+</script>
+
+
+
 
 </body>
 </html>

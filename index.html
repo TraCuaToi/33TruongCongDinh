@@ -1586,6 +1586,7 @@ toggleToppingsBtn.textContent = 'Hiện topping (bấm để mở)';
       try {
           await ordersCollection.add(newOrder);
           showCustomAlert('Đơn hàng của bạn đã được gửi thành công!');
+		  await sendOrderToGoogleSheet(newOrder);      // Google Sheet
           cart = []; 
           updateCartCount();
           cartModal.style.display = 'none';
@@ -2809,12 +2810,30 @@ function searchMenuItems() {
 }
 
 </script>
+<script>
+async function sendOrderToGoogleSheet(order) {
+  try {
+    const formData = new FormData();
+    formData.append("order", JSON.stringify(order));
 
+    const res = await fetch("https://script.google.com/macros/s/AKfycbwCBoiLQvHh9drsAuRfQWQigZ2yBrWe2-9nOGUMMaWEVgh5m5wFn14DVtmsZM2jZgyTiQ/exec", {
+      method: "POST",
+      body: formData
+    });
+
+    const text = await res.text();
+    console.log("Kết quả Google Sheet:", text);
+  } catch (err) {
+    console.error("Lỗi gửi Google Sheet:", err);
+  }
+}
+</script>
 
 
 
 </body>
 </html>
+
 
 
 

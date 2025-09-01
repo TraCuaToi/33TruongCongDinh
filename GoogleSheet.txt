@@ -1,0 +1,24 @@
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Orders");
+    sheet.appendRow(["SĐT","Tên món","Size","SL","Topping","Ghi chú","Tổng tiền","Thời gian"]);
+  }
+
+  var order = JSON.parse(e.parameter.order);
+
+  order.items.forEach(item => {
+sheet.appendRow([
+  order.phoneNumber,
+  item.name,
+  item.size || "",
+  String(item.quantity), // 👉 ép số thành chuỗi để không bị thành ngày
+  (item.toppings || []).map(t => t.name).join(", "),
+  order.notes || "",
+  item.price * item.quantity,
+  new Date()
+]);
+  });
+
+  return ContentService.createTextOutput("success");
+}

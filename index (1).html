@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Quét Mã Vạch bằng Camera (Zoom/Fix)</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 50px; }
+    video { width: 400px; border: 1px solid #ccc; display: block; margin-bottom: 20px; }
+    input { padding: 10px; font-size: 16px; width: 400px; margin-bottom: 10px; }
+    p { font-size: 18px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<h2>Quét Mã Vạch bằng Camera</h2>
+<video id="video" autoplay></video>
+<input type="text" id="manualInput" placeholder="Nhập hoặc quét mã vạch" autofocus>
+<p>Mã vạch quét được: <span id="scannedCode">Chưa có</span></p>
+<p>Sản phẩm: <span id="productName">Chưa có</span></p>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js"></script>
+<script>
+const products = {
+    "4984824203211": "Pin Panasonic"
+};
+
+const video = document.getElementById('video');
+const manualInput = document.getElementById('manualInput');
+const scannedCode = document.getElementById('scannedCode');
+const output = document.getElementById('productName');
+
+const codeReader = new ZXing.BrowserMultiFormatReader();
+
+// Thử tất cả camera, ưu tiên sau lưng
+navigator.mediaDevices.enumerateDevices().then(devices => {
+    const videoInput = devices.find(device => device.kind === 'videoinput');
+    if(videoInput) {
+        codeReader.decodeFromVideoDevice(videoInput.deviceId, video, (result, err) => {
+            if (result) {
+                let code = result.text.trim().replace(/\D/g,'');
+                scannedCode.textContent = code;
+                output.textContent = products[code] || 'Không tìm thấy sản phẩm';
+                manualInput.value = code;
+            }
+        });
+    } else {
+        alert('Không tìm thấy camera');
+    }
+});
+
+// Nhập tay
+manualInput.addEventListener('input', () => {
+    const code = manualInput.value.trim().replace(/\D/g,'');
+    scannedCode.textContent = code || 'Chưa có';
+    output.textContent = products[code] || 'Không tìm thấy sản phẩm';
+});
+
+// Tăng độ nét/zoom cho camera nếu trình duyệt hỗ trợ
+navigator.mediaDevices.getUserMedia({ video: { zoom: true, focusMode: 'continuous' } }).then(stream => {
+    video.srcObject = stream;
+});
+</script>
+</body>
+</html>

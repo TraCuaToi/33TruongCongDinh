@@ -1668,6 +1668,24 @@ toggleToppingsBtn.textContent = 'Hiện topping (bấm để mở)';
 			<p style="margin-top: 8px; color: #555;">Ngày đặt: ${timestamp}</p>
                         <p style="font-weight: bold; color: ${orderData.completed ? '#4CAF50' : '#e63946'}; font-size: 1.1em; margin-top: 10px;">Trạng thái: ${statusText}</p>
                     `;
+// === Nút In riêng từng đơn ===
+const printBtn = document.createElement('button');
+printBtn.textContent = '🖨️ In hóa đơn này';
+printBtn.style.marginTop = '10px';
+printBtn.style.background = '#2196F3';
+printBtn.style.color = 'white';
+printBtn.style.border = 'none';
+printBtn.style.padding = '6px 10px';
+printBtn.style.borderRadius = '6px';
+printBtn.style.cursor = 'pointer';
+
+// Bắt sự kiện in riêng
+printBtn.addEventListener('click', () => {
+  printSingleReceipt(orderDiv);
+});
+
+orderDiv.appendChild(printBtn);
+
 
 // >>> THÊM Ở ĐÂY <<<
 if (!orderData.accepted && !orderData.completed) {
@@ -2262,13 +2280,13 @@ function printAllReceipts() {
   `;
 
   ordersInPopup.forEach(order => {
-    let cleanText = order.innerText.replace("Hủy đơn", "").trim();
+    let cleanText = order.innerText.replace("Hủy đơn", "").replace("🖨️ In hóa đơn này", "").trim();
     cleanText.split("\n").forEach(line => {
       if (line.trim() !== "") {
         receiptText += `<p style="margin:2px 0; font-size:10px;">${line}</p>`;
       }
     });
-    receiptText += `<hr/>`;
+     receiptText += `<hr/>`;
   });
 
   receiptText += `
@@ -2309,6 +2327,50 @@ document.addEventListener('click', function(event) {
   }
 });
 ////////////////////////////////////////////////////////////////////////////////////////
+function printSingleReceipt(orderElement) {
+  const ngayIn = getFormattedDateTime();
+  const storeName = document.getElementById("store-name").textContent || "";
+  const storeAddress = document.getElementById("store-address").textContent || "";
+
+  let receiptText = `
+    <div style="font-family: monospace; width:220px; margin:0 auto; padding-top:1cm;">
+      <h2 style="text-align:center; font-size:16px; margin-bottom:1px;">🍵 ${storeName} 🍵</h2>  
+      <h2 style="text-align:center; font-size:8px; margin-top:0; margin-bottom:1px;">${storeAddress}</h2>
+      <h3 style="text-align:center; font-size:14px; margin-top:0; margin-bottom:2px;">HÓA ĐƠN BÁN HÀNG</h3>
+      <p style="text-align:center; font-size:10px; white-space:nowrap;">${ngayIn}</p>
+      <hr/>
+  `;
+
+  // Lấy nội dung của đơn đó
+  let cleanText = orderElement.innerText.replace("Hủy đơn", "").replace("🖨️ In hóa đơn này","").trim();
+  cleanText.split("\n").forEach(line => {
+    if (line.trim() !== "") {
+      receiptText += `<p style="margin:2px 0; font-size:10px;">${line}</p>`;
+    }
+  });
+  receiptText += `<hr/>`;
+ 
+  receiptText += `
+      <p style="text-align:center; margin-top:8px; font-size:8px;">
+        ✨ Cảm ơn quý khách! Hẹn gặp lại lần sau ✨
+      </p>
+    </div>
+  `;
+
+  // In ra
+  const printWindow = window.open('', '', 'width=400,height=600');
+  printWindow.document.write('<html><head><title>In hóa đơn</title></head><body>');
+  printWindow.document.write(receiptText);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  }, 500);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 ordersCollection.onSnapshot(querySnapshot => {
   querySnapshot.docChanges().forEach(change => {

@@ -1678,7 +1678,12 @@ printBtn.style.border = 'none';
 printBtn.style.padding = '6px 10px';
 printBtn.style.borderRadius = '6px';
 printBtn.style.cursor = 'pointer';
-
+// 👉 Quyết định ẩn/hiện ngay tại đây
+if (auth.currentUser) {
+  printBtn.style.display = 'inline-block';
+} else {
+  printBtn.style.display = 'none';
+}
 // Bắt sự kiện in riêng
 printBtn.addEventListener('click', () => {
   printSingleReceipt(orderDiv);
@@ -2896,6 +2901,7 @@ async function sendOrderToGoogleSheet(order) {
 
 </body>
 </html>
+
 
 
 

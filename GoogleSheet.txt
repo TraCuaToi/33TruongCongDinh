@@ -2,51 +2,44 @@ function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
   if (!sheet) {
     sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Orders");
-    sheet.appendRow(["SĐT","Tên món","Size","SL","Topping","Ghi chú","Tổng tiền","Thời gian"]);
+    sheet.appendRow([
+      "SĐT","Tên món","Size","SL","Topping",
+      "Ghi chú","Tổng tiền","Thời gian","Trạng thái"
+    ]);
   }
 
   var order = JSON.parse(e.parameter.order);
 
-  order.items.forEach(item => {
-sheet.appendRow([
-  order.phoneNumber,
-  item.name,
-  item.size || "",
-  String(item.quantity), // 👉 ép số thành chuỗi để không bị thành ngày
-  (item.toppings || []).map(t => t.name).join(", "),
-  order.notes || "",
-  item.price * item.quantity,
-  new Date()
-]);
-  });
-
-  return ContentService.createTextOutput("success");
-}
-/////////////////////////////////////////////////////////////////////////////////
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
-  if (!sheet) {
-    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Orders");
-    sheet.appendRow(["SĐT","Tên món","Size","SL","Topping","Ghi chú","Tổng tiền","Thời gian"]);
-  }
-
-  var order = JSON.parse(e.parameter.order);
+  var status = order.huyDon ? "Hủy đơn" : "Đơn mới";
 
   order.items.forEach(item => {
-sheet.appendRow([
-  order.phoneNumber,
-  item.name,
-  item.size || "",
-  String(item.quantity), // 👉 ép số thành chuỗi để không bị thành ngày
-  (item.toppings || []).map(t => t.name).join(", "),
-  order.notes || "",
-  item.price * item.quantity,
-  new Date()
-]);
-  });
+    var quantity = item.quantity;
+    var totalPrice = item.price * item.quantity;
 
+    if (status === "Hủy đơn") {
+      quantity = quantity * -1;     // SL âm
+      totalPrice = totalPrice * -1; // Tiền âm
+    }
+
+    sheet.appendRow([
+      order.phoneNumber,
+      item.name,
+      item.size || "",
+      String(quantity), // 👈 ghi số lượng (âm nếu hủy)
+      (item.toppings || []).map(t => t.name).join(", "),
+      order.notes || "",
+      totalPrice,       // 👈 tiền âm nếu hủy
+      new Date(),
+      status
+    ]);
+  });
+ 
   return ContentService.createTextOutput("success");
+   
 }
+
+
+
 
 function deleteVisibleRowsFrom17() {
   var adminEmail = "nguyenminh.code.edu@gmail.com"; // đổi thành email admin thật
@@ -76,5 +69,6 @@ function onOpen() {
     .addItem("Xóa từ dòng 17 trở đi(Chỉ xóa dòng đang hiện-Nhớ lọc những dòng cần xóa)", "deleteVisibleRowsFrom17")
     .addToUi();
 }
+
 
 
